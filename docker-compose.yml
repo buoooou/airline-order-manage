@@ -19,7 +19,8 @@ services:
 
   # Spring Boot + Angular 应用服务
   app:
-    image: kroulzhang/airline-order-manage:latest # 必须和 GitHub Actions 中构建的镜像名一致
+    # image: kroulzhang/airline-order-manage:latest # <--- 注释掉或删除这行
+    build: .
     container_name: my-springboot-angular-app
     restart: always
     ports:
