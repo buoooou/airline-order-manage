@@ -1,6 +1,5 @@
 package com.postion.airlineorderbackend.config;
 
-import com.postion.airlineorderbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,16 +12,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -35,32 +33,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors() // 启用CORS
-                .and()
-                .csrf().disable() // 禁用CSRF
-                .authorizeRequests(authz -> authz
+                // (推荐) 使用新的Lambda DSL配置CSRF，更清晰
+                .csrf(AbstractHttpConfigurer::disable)
+                // 配置授权规则
+                .authorizeHttpRequests(authz -> authz
+                        // 明确放行所有公共路径
                         .antMatchers(
-                                "/api/auth/login",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/webjars/**","/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**"
+                                "/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**", // 前端静态资源
+                                "/api/auth/**", // 所有认证相关的API
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**" // Swagger文档
                         ).permitAll()
+                        // 其他任何请求都需要身份验证
                         .anyRequest().authenticated()
                 )
+                // 配置会话管理为无状态，因为我们用JWT
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 关联我们自定义的AuthenticationProvider
                 .authenticationProvider(authenticationProvider())
+                // 在UsernamePasswordAuthenticationFilter之前添加我们的JWT过滤器
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // 注意：CORS的配置在这里，但securityFilterChain中并没有显式调用.cors()
+    // Spring Boot会自动寻找名为corsConfigurationSource的Bean并应用它
     @Bean
-    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200")); // 允许的前端地址
+        // (重要修改) 允许任何来源，或您服务器的公网IP。用"*"在开发和测试中最方便
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
