@@ -1,0 +1,31 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>订单列表</h1>
+    <button nz-button nzType="default" (click)="logout()">退出登录</button>
+  </div>
+  
+  <nz-table #basicTable [nzData]="(orders$ | async)!" [nzLoading]="!(orders$ | async)">
+    <thead>
+      <tr>
+        <th>订单号</th>
+        <th>状态</th>
+        <th>金额</th>
+        <th>创建日期</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of basicTable.data">
+        <td>{{ data.orderNumber }}</td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(data.status)">{{ data.status | titlecase }}</nz-tag>
+        </td>
+        <td>{{ data.amount | currency:'CNY' }}</td>
+        <td>{{ data.creationDate | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td>
+          <a [routerLink]="['/orders', data.id]">查看详情</a>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>

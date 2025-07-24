@@ -1,0 +1,25 @@
+<div class="page-container" *ngIf="order$ | async as order; else loading">
+  <nz-page-header nzBackIcon [nzGhost]="false" nzTitle="订单详情" [nzSubtitle]="order.orderNumber">
+    <nz-page-header-extra>
+      <a routerLink="/orders">返回列表</a>
+    </nz-page-header-extra>
+  </nz-page-header>
+
+  <nz-descriptions nzBordered [nzColumn]="{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }">
+    <nz-descriptions-item nzTitle="订单ID">{{ order.id }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="订单号">{{ order.orderNumber }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="订单状态">
+      <nz-tag nzColor="blue">{{ order.status | titlecase }}</nz-tag>
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="订单金额">{{ order.amount | currency:'CNY' }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="创建时间">{{ order.creationDate | date:'full' }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="下单用户">{{ order.user.username }} (ID: {{ order.user.id }})</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="模拟航班信息" nzSpan="2" *ngIf="order.flightInfo">
+      <pre>{{ order.flightInfo | json }}</pre>
+    </nz-descriptions-item>
+  </nz-descriptions>
+</div>
+
+<ng-template #loading>
+  <div class="page-container">加载中...</div>
+</ng-template>
