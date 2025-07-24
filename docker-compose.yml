@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  database:
+    image: mysql:8.0
+    container_name: airline-mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: airlineTest1234  # Root 用户的密码
+      MYSQL_DATABASE: myappdb                         # 创建的数据库名
+      MYSQL_USER: myappuser                           # 为应用创建的用户名
+      MYSQL_PASSWORD: airlineTest1234     # 应用用户的密码
+    volumes:
+      # 关键：将数据库文件持久化到 EC2 主机上，防止容器删除时数据丢失
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # Spring Boot + Angular 应用服务
+  app:
+    image: kroulzhang/airline-order-manage:latest # 必须和 GitHub Actions 中构建的镜像名一致
+    container_name: my-springboot-angular-app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database # 保证数据库先于应用启动
+    environment:
+      # 通过环境变量将数据库连接信息注入到 Spring Boot 中
+      - SPRING_DATASOURCE_URL=jdbc:mysql://database:3306/myappdb?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=myappuser
+      - SPRING_DATASOURCE_PASSWORD=airlineTest1234
+    networks:
+      - app-network
+
+# 定义数据卷，Docker 会自动管理它
+volumes:
+  db_data:
+
+# 定义网络，让两个容器可以互相通信
+networks:
+  app-network:
