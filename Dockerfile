@@ -1,4 +1,4 @@
-# 推荐的修改
+# --- 阶段 1: 构建 Angular 前端 ---
 FROM node:20-alpine as frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
@@ -12,7 +12,11 @@ WORKDIR /app/backend
 COPY backend/pom.xml ./
 RUN mvn dependency:go-offline
 COPY backend/ ./
-COPY --from=frontend-builder /app/frontend/dist/frontend /app/backend/src/main/resources/static
+
+# (重要修改) 不再拷贝到src目录，而是拷贝到target目录下的一个临时位置
+COPY --from=frontend-builder /app/frontend/dist/frontend /app/backend/target/frontend
+
+# 现在，让Maven来完成所有工作，包括通过新加的插件来复制前端文件
 RUN mvn clean package -DskipTests
 
 # --- 阶段 3: 创建最终的运行镜像 ---
