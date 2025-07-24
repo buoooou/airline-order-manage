@@ -41,11 +41,10 @@ public class SecurityConfig {
                 .authorizeRequests(authz -> authz
                         .antMatchers(
                                 "/api/auth/login",
-                                // 注意：SpringDoc在SB2下的路径可能不同，后面会讲
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/webjars/**"
+                                "/webjars/**","/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
