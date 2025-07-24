@@ -6,6 +6,8 @@ RUN npm install
 COPY frontend/ ./
 RUN npm run build -- --configuration production
 
+RUN ls -l /app/frontend/dist/
+
 # --- 阶段 2: 构建 Spring Boot 后端 ---
 FROM maven:3.8.5-openjdk-8 as backend-builder
 WORKDIR /app/backend
