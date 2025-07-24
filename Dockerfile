@@ -1,4 +1,5 @@
-FROM node:18-alpine as frontend-builder
+# 推荐的修改
+FROM node:20-alpine as frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
