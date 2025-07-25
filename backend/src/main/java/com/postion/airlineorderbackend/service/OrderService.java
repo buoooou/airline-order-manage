@@ -25,4 +25,8 @@ public interface OrderService {
      * @throws RuntimeException if an order with the given ID is not found.
      */
     OrderDto getOrderById(Long id);
+
+    OrderDto payOrder(Long id);
+    void requestTicketIssuance(Long id); // 这是一个异步触发方法
+    OrderDto cancelOrder(Long id);
 }
