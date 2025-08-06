@@ -33,7 +33,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // (推荐) 使用新的Lambda DSL配置CSRF，更清晰
+                // (推荐) 使用新的Lambda DSL配置CSRF (跨站请求伪造) ，更清晰
                 .csrf(AbstractHttpConfigurer::disable)
                 // 配置授权规则
                 .authorizeHttpRequests(authz -> authz
@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .antMatchers(
                                 "/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**", // 前端静态资源
                                 "/api/auth/**", // 所有认证相关的API
-                                "/api/orders/**",//所有订单相关的API
+
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**" // Swagger文档
                         ).permitAll()
                         // 其他任何请求都需要身份验证
@@ -57,7 +57,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 注意：CORS的配置在这里，但securityFilterChain中并没有显式调用.cors()
+    // 注意：CORS(跨源资源共享)的配置在这里，但securityFilterChain中并没有显式调用.cors()
     // Spring Boot会自动寻找名为corsConfigurationSource的Bean并应用它
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

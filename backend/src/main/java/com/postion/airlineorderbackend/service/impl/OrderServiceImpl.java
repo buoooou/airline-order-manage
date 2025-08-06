@@ -143,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
      * 缺点： 实现相对复杂，需要自己处理“更新失败”（即没抢到锁）的情况。
      *
      *
-     *方案二：基于 Redis 的实现
+     *方案二：基于 redission/redis 的实现
      * 利用 Redis 高性能的原子操作来实现分布式锁。
      * 实现方式：SETNX (SET if Not eXists)
      * 原理： SET lock_key random_value NX PX timeout 是一个原子命令。
@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
      *
      *方案四：使用成熟的分布式任务调度框架
      * 当定时任务变得非常多且复杂时，最好的选择是引入一个专业的分布式任务调度平台。
-     * 代表框架：XXL-Job、PowerJob、Elastic-Job
+     * 代表框架：XXL-Job、PowerJob、Elastic-Job、quartz
      * 原理： 这些框架通常包含一个调度中心（Admin）和一个执行器（Executor）。
      * 调度中心： 负责任务的管理、配置、调度和监控。它知道所有在线的执行器节点。
      * 执行器： 部署在您的业务应用中，负责接收调度中心的指令并执行具体的业务代码（JobHandler）。
@@ -183,6 +183,14 @@ public class OrderServiceImpl implements OrderService {
      * 执行器执行业务代码，并将结果（成功/失败/日志）回报给调度中心。
      * 优点： 功能极其强大，提供可视化管理、失败告警、任务分片、高可用、日志追溯等全套解决方案，将调度逻辑与业务逻辑完全解耦。
      * 缺点： 架构变重，需要额外部署和维护一个调度中心。
+     *
+     * CREATE TABLE shedlock (
+     *     name VARCHAR(64) NOT NULL,
+     *     lock_until TIMESTAMP(3) NOT NULL,
+     *     locked_at TIMESTAMP(3) NOT NULL,
+     *     locked_by VARCHAR(255) NOT NULL,
+     *     PRIMARY KEY (name)
+     * );
      */
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -192,6 +200,8 @@ public class OrderServiceImpl implements OrderService {
             lockAtLeastFor = "10s"           // The lock is held for at least 10s
     )
     public void cancelUnpaidOrders() {
+        //
+
         log.info("【定时任务】开始检查并取消支付超时的订单...");
         LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Order> unpaidOrders = orderRepository.findByStatusAndCreationDateBefore(

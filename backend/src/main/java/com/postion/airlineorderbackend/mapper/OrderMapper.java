@@ -12,8 +12,8 @@ public interface OrderMapper {
 
     // MapStruct can map nested objects automatically if they have a corresponding mapping method
     @Mappings({
-            @Mapping(source = "user", target = "user"), // Map the user object
-            @Mapping(target = "flightInfo", ignore = true) // flightInfo is added later, not from the entity
+//            @Mapping(source = "author", target = "user"), // Map the user object
+//            @Mapping(target = "flightInfo", ignore = true) // flightInfo is added later, not from the entity
     })
     OrderDto toDto(Order order);
 
