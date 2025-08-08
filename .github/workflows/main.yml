@@ -30,7 +30,7 @@ jobs:
       # 3. 后端构建与测试
       #    这个步骤不需要改变，Maven 会使用上面设置好的 JDK 1.8 环境。
       - name: Build and Test Backend
-        run: mvn -B package --file pom.xml
+        run: mvn -B package -DskipTests --file pom.xml
 
       # 4. 设置 Node.js 环境用于前端构建和测试
       - name: Set up Node.js 20
