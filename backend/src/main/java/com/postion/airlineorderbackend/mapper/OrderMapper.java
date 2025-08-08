@@ -4,7 +4,6 @@ import com.postion.airlineorderbackend.dto.OrderDto;
 import com.postion.airlineorderbackend.model.Order;
 import com.postion.airlineorderbackend.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring") // Generates a Spring Bean for injection
