@@ -24,7 +24,7 @@ COPY backend/src ./src
 
 # (关键修正) 从 frontend-builder 阶段复制正确的构建产物路径
 # 假设诊断出的路径是 /app/dist/frontend/browser
-COPY --from=frontend-builder /app/dist/frontend/browser/ ./src/main/resources/static/
+COPY --from=frontend-builder /app/dist/*/ ./src/main/resources/static/
 
 # 打包后端应用，此时前端文件已在 static 目录中
 RUN mvn package -DskipTests
