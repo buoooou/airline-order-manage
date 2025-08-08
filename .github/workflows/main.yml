@@ -78,7 +78,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/my-app-deployment
+            cd ~/airline-cicd
             docker-compose pull
             docker-compose up -d --remove-orphans
             docker image prune -f
