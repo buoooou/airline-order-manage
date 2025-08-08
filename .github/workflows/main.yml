@@ -1,0 +1,87 @@
+# .github/workflows/ci-cd.yml
+
+name: Build, Test, Push, and Deploy (JDK 1.8)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- CI (持续集成) 部分 ---
+
+      # 2. 设置 Java 环境为 JDK 1.8 (核心修改点)
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v4
+        with:
+          # 将 java-version 修改为 '8'
+          java-version: '8'
+          # 对于 JDK 8，通常使用 'temurin' 或 'adopt' 发行版
+          distribution: 'temurin'
+
+      # 3. 后端构建与测试
+      #    这个步骤不需要改变，Maven 会使用上面设置好的 JDK 1.8 环境。
+      - name: Build and Test Backend
+        run: mvn -B package --file pom.xml
+
+      # 4. 设置 Node.js 环境用于前端构建和测试
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 5. 前端构建与测试
+      #    如果你的前端代码在子目录中，请使用 working-directory
+      #    例如: working-directory: ./frontend
+      - name: Build and Test Frontend
+        run: npm ci && npm run build
+
+      # --- CD (持续部署) 部分 ---
+
+      # 6. 登录到 Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 7. 构建并推送 Docker 镜像
+      #    为镜像打上 latest 和一个唯一的 Git commit SHA 标签
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          # file: ./Dockerfile (如果 Dockerfile 不在根目录)
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/airline-order-manage:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/airline-order-manage:${{ github.sha }}
+
+      # 8. 部署到 EC2
+      #    假设 docker-compose.yml 和 Docker 登录凭证已在服务器上预先配置好。
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 进入部署目录
+            cd ~/my-app-deployment
+
+            # 从 Docker Hub 拉取最新的镜像
+            docker-compose pull
+
+            # 以后台模式启动或重启服务，并清理无用的旧容器
+            docker-compose up -d --remove-orphans
+            
+            # (推荐) 清理旧的、未使用的 Docker 镜像，释放磁盘空间
+            docker image prune -f
