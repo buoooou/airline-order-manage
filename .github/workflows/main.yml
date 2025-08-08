@@ -44,10 +44,22 @@ jobs:
           node-version: '20'
 
       # 5. 前端构建 (使用正确的、直接的相对路径)
-      - name: Build Frontend
-        # 关键修复：直接指向 frontend 子目录
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          # 你可以指定 pnpm 的版本，或者让它使用最新的
+          version: 8
+
+      # 6. 安装前端依赖 (使用 pnpm)
+      - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci && npm run build
+        # 现在我们使用 pnpm install，它会自动读取 pnpm-lock.yaml
+        run: pnpm install
+
+      # 7. 构建前端 (使用 pnpm)
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: pnpm run build
 
       # --- Docker 构建与部署 (CD) ---
       # (后面的步骤保持不变)
