@@ -28,7 +28,7 @@ jobs:
       # 3. 后端构建 (指定了正确的工作目录)
       - name: Build Backend (Skipping Tests)
         # 关键修改：告诉此步骤，所有命令都在 ./backend 目录内执行
-        working-directory: ./backend
+        working-directory: ./airline-order-manage/backend
         run: mvn -B package -DskipTests --file pom.xml
 
       # --- 前端 CI ---
@@ -42,7 +42,7 @@ jobs:
       # 5. 前端构建 (指定了正确的工作目录)
       - name: Build Frontend
         # 关键修改：告诉此步骤，所有命令都在 ./frontend 目录内执行
-        working-directory: ./frontend
+        working-directory: ./airline-order-manage/frontend
         run: npm ci && npm run build
 
       # --- Docker 构建与部署 (CD) ---
