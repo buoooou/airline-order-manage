@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: myappdb                         # 创建的数据库名
       MYSQL_USER: myappuser                           # 为应用创建的用户名
       MYSQL_PASSWORD: airlineTest1234     # 应用用户的密码
-    posts:
+    ports:
       - "3306": "3306"
     volumes:
       # 关键：将数据库文件持久化到 EC2 主机上，防止容器删除时数据丢失
