@@ -41,7 +41,6 @@ public class SecurityConfig {
                         .antMatchers(
                                 "/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**", // 前端静态资源
                                 "/api/auth/**", // 所有认证相关的API
-
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**" // Swagger文档
                         ).permitAll()
                         // 其他任何请求都需要身份验证
