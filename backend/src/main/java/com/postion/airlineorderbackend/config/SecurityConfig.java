@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -38,12 +40,31 @@ public class SecurityConfig {
                 // 配置授权规则
                 .authorizeHttpRequests(authz -> authz
                         // 明确放行所有公共路径
-                        .antMatchers(
-                                "/", "/index.html", "/*.js", "/*.css", "/*.ico", "/*.png", "/assets/**", // 前端静态资源
-                                "/api/auth/**", // 所有认证相关的API
-                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**" // Swagger文档
+                        .requestMatchers(
+                                // 明确放行 API 认证路径和 Swagger
+                                new AntPathRequestMatcher("/api/auth/**"),
+                                new AntPathRequestMatcher("/swagger-ui.html"),
+                                new AntPathRequestMatcher("/swagger-ui/**"),
+                                new AntPathRequestMatcher("/v3/api-docs/**"),
+                                new AntPathRequestMatcher("/webjars/**")
                         ).permitAll()
-                        // 其他任何请求都需要身份验证
+
+                        // 放行所有前端静态资源
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/index.html"),
+                                new AntPathRequestMatcher("/*.js"),
+                                new AntPathRequestMatcher("/*.css"),
+                                new AntPathRequestMatcher("/*.ico"),
+                                new AntPathRequestMatcher("/*.png"),
+                                new AntPathRequestMatcher("/assets/**")
+                        ).permitAll()
+
+                        // 核心修复：放行所有看起来像前端路由的路径
+                        // 让它们有机会被 WebConfig 转发
+                        .requestMatchers(new RegexRequestMatcher("^/(?!api|assets|webjars|swagger-ui|v3/api-docs).*$", null)).permitAll()
+
+                        // 剩下的所有请求（主要是 /api/ 路径下的其他接口）都需要认证
                         .anyRequest().authenticated()
                 )
                 // 配置会话管理为无状态，因为我们用JWT
