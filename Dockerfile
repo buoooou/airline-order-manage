@@ -1,6 +1,9 @@
 # --- 阶段 1: 构建 Angular 前端 ---
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
+
+RUN npm install -g pnpm
+
 # 复制依赖描述文件
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 # 安装依赖
