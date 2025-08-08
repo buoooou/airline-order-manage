@@ -27,7 +27,7 @@ COPY --from=frontend-builder /app/dist/frontend/browser/ ./src/main/resources/st
 RUN mvn package -DskipTests
 
 # --- 阶段 3: 创建最终的运行镜像 ---
-FROM amazoncorretto:8-jre-alpine
+FROM eclipse-temurin:8-jre-alpine
 WORKDIR /app
 # 使用通配符复制 JAR 包
 COPY --from=backend-builder /app/target/*.jar app.jar
