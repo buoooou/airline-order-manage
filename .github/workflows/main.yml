@@ -1,4 +1,4 @@
-# .github/workflows/main.yml (或者 ci-cd.yml)
+# .github/workflows/main.yml
 
 name: Build, Test, Push, and Deploy
 
@@ -12,9 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码到工作区
+      # 1. 检出代码
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # (可选但推荐) 添加一个调试步骤来确认目录结构
+      - name: Verify Directory Structure
+        run: ls -R
 
       # --- 后端 CI ---
 
@@ -25,10 +29,10 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
 
-      # 3. 后端构建 (指定了正确的工作目录)
+      # 3. 后端构建 (使用正确的、直接的相对路径)
       - name: Build Backend (Skipping Tests)
-        # 关键修改：告诉此步骤，所有命令都在 ./backend 目录内执行
-        working-directory: ./airline-order-manage/backend
+        # 关键修复：直接指向 backend 子目录
+        working-directory: ./backend
         run: mvn -B package -DskipTests --file pom.xml
 
       # --- 前端 CI ---
@@ -39,13 +43,14 @@ jobs:
         with:
           node-version: '20'
 
-      # 5. 前端构建 (指定了正确的工作目录)
+      # 5. 前端构建 (使用正确的、直接的相对路径)
       - name: Build Frontend
-        # 关键修改：告诉此步骤，所有命令都在 ./frontend 目录内执行
-        working-directory: ./airline-order-manage/frontend
+        # 关键修复：直接指向 frontend 子目录
+        working-directory: ./frontend
         run: npm ci && npm run build
 
       # --- Docker 构建与部署 (CD) ---
+      # (后面的步骤保持不变)
 
       # 6. 登录到 Docker Hub
       - name: Login to Docker Hub
@@ -55,13 +60,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # 7. 构建并推送 Docker 镜像
-      #    注意：你的 Dockerfile 也需要正确地引用 backend/target 和 frontend/dist 里的产物
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          # context 仍然是项目根目录，这样 Dockerfile 可以访问到 backend 和 frontend 文件夹
           context: .
-          # Dockerfile 的路径，假设它在根目录
           file: ./Dockerfile
           push: true
           tags: |
