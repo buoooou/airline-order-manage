@@ -13,6 +13,8 @@ public interface OrderMapper {
     // MapStruct can map nested objects automatically if they have a corresponding mapping method
     OrderDto toDto(Order order);
 
+
+
     // This method will be used by the above toDto method to map the User entity to UserDto
     OrderDto.UserDto userToUserDto(User user);
 }
